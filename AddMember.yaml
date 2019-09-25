@@ -1,0 +1,847 @@
+---
+swagger: "2.0"
+info:
+  version: "2019-09-17T11:46:12Z"
+  title: "G-Business-Uat"
+host: "d523sg4kd1.execute-api.ap-south-1.amazonaws.com"
+basePath: "/G-Business-UAT-Stage"
+schemes:
+- "https"
+paths:
+  /addmember:
+    post:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "Content-Type"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "CorrelationId"
+        in: "header"
+        required: true
+        type: "string"
+      - name: "ClientId"
+        in: "header"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "AddMemberAPIValidator"
+        required: true
+        schema:
+          $ref: "#/definitions/AddMemberAPIValidator"
+      responses:
+        200:
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/AddMemberResponseModel"
+        422:
+          description: "422 response"
+          schema:
+            $ref: "#/definitions/AddMemberResponseModel"
+        400:
+          description: "400 response"
+          schema:
+            $ref: "#/definitions/AddMemberResponseModel"
+        500:
+          description: "500 response"
+          schema:
+            $ref: "#/definitions/AddMemberResponseModel"
+      security:
+      - Pirmal-UAT:
+        - "GroupAPI/ADD_MEMBER"
+      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
+        \ and headers"
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-south-1:777706696655:function:AffinityPartnerAddMemberLambda-uat/invocations"
+        responses:
+          .*400,.*:
+            statusCode: "400"
+            responseTemplates:
+              application/json: "$util.parseJson($input.json('$.errorMessage'))"
+          default:
+            statusCode: "200"
+          .*500,.*:
+            statusCode: "500"
+            responseTemplates:
+              application/json: "$util.parseJson($input.json('$.errorMessage'))"
+          .*422,.*:
+            statusCode: "422"
+            responseTemplates:
+              application/json: "$util.parseJson($input.json('$.errorMessage'))"
+        passthroughBehavior: "never"
+        httpMethod: "POST"
+        requestTemplates:
+          application/json: "{\r\n    \"method\": \"$context.httpMethod\",\r\n   \
+            \ \"body\" : $input.json('$'),\r\n    \"headers\": {\r\n        #foreach($param\
+            \ in $input.params().header.keySet())\r\n        \"$param\": \"$util.escapeJavaScript($input.params().header.get($param))\"\
+            \r\n        #if($foreach.hasNext),#end\r\n        #end\r\n    }\r\n}"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+securityDefinitions:
+  Pirmal-UAT:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+    x-amazon-apigateway-authtype: "cognito_user_pools"
+    x-amazon-apigateway-authorizer:
+      providerARNs:
+      - "arn:aws:cognito-idp:ap-south-1:777706696655:userpool/ap-south-1_0soGQEbBJ"
+      type: "cognito_user_pools"
+definitions:
+  AddMemberAPIValidatorApplicationDetailsPolicyDetailsPaymentInformation:
+    type: "object"
+    properties:
+      premiumPaymentTerm:
+        type: "integer"
+        description: "Premium Payment term in months"
+        minimum: 1.0
+        maximum: 999.0
+      paymentType:
+        type: "string"
+        enum:
+        - "Single Pay"
+        - "Regular Pay"
+    description: "Payment Details schema"
+  AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsMobileNumber:
+    type: "object"
+    properties:
+      countryCode:
+        type: "string"
+        description: "Country Code preceded by +. Example- '+91' for India. If this\
+          \ is not provided, then mobile Number is assumed to be of an Indian Subscriber."
+      mobile:
+        type: "integer"
+        description: "10-digit mobile number without Country code or '0'-prefix"
+        maximum: 9.999999999E9
+  AddMemberAPIValidatorApplicationDetailsChannelDetailsSalesRM:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      mobileNumber:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsMobileNumber"
+      RMCode:
+        type: "string"
+    description: "Record details of Sales Personnel"
+  AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetails:
+    type: "object"
+    required:
+    - "addressDetails"
+    properties:
+      email:
+        type: "string"
+      mobileNumber:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsMobileNumber"
+      residentialPhoneNumber:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsResidentialPhoneNumber"
+      officialPhoneNumber:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsResidentialPhoneNumber"
+      addressDetails:
+        type: "object"
+        properties:
+          communicationAddress:
+            $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsAddressDetailsCommunicationAddress"
+          areBothAddressSame:
+            type: "boolean"
+            description: "false if Communication Address and Permanent Address are\
+              \ different. if 'areBothAddressSame' is false, then 'permanentAddress'\
+              \ must also be specified."
+          permanentAddress:
+            $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsAddressDetailsCommunicationAddress"
+        required:
+        - "communicationAddress"
+  AddMemberResponseModelMsgDescriptionsItem:
+    type: "string"
+  AddMemberAPIValidatorApplicationDetailsChannelDetailsBranchInformation:
+    type: "object"
+    required:
+    - "branchCity"
+    properties:
+      branchCode:
+        type: "string"
+      branchName:
+        type: "string"
+      branchCity:
+        type: "string"
+    description: "Branch from where enrolment has been sourced."
+  AddMemberResponseModel:
+    type: "object"
+    properties:
+      UUID:
+        type: "string"
+        description: "This is the unique identifier associated with the request that\
+          \ has been received by MLI. This is returned only when the request is valid\
+          \ and passes all automated/system validation rules."
+      receivedAt:
+        type: "string"
+        description: "Timestamp in DD-MM-YYYYThh:mm:ss format at which the request\
+          \ was received at MLI for furhter processing. T is used as a delimiter between\
+          \ the date and time"
+      msg:
+        type: "string"
+        description: "Short description of the API's response."
+        enum:
+        - "success"
+        - "failure"
+        - "badRequest"
+      msgCode:
+        type: "integer"
+        description: "The response code generated by the application."
+      msgDescriptions:
+        type: "array"
+        description: "List of responses/errors that may be generated."
+        items:
+          $ref: "#/definitions/AddMemberResponseModelMsgDescriptionsItem"
+    description: "A representation of a response of AddMember API"
+  AddMemberAPIValidatorApplicationDetailsProposerInformationNationalityDetails:
+    type: "object"
+    required:
+    - "nationality"
+    properties:
+      nationality:
+        type: "string"
+        enum:
+        - "IND"
+      passportNumber:
+        type: "string"
+      passportIssueDate:
+        type: "string"
+        description: "date. DD-MM-YYYY"
+        pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+      passportExpDate:
+        type: "string"
+        description: "date. DD-MM-YYYY"
+        pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+      passportIssuancePlace:
+        type: "string"
+  AddMemberAPIValidatorApplicationDetailsPolicyDetailsNomineeDetailsItemAppointee:
+    type: "object"
+    required:
+    - "dob"
+    - "firstName"
+    - "gender"
+    - "lastName"
+    - "nationalityDetails"
+    - "relationshipWithNominee"
+    properties:
+      relationshipWithNominee:
+        type: "string"
+        description: "BL - Brother In Law, BR - BROTHER, CB - Cousin Brother, CS -\
+          \ Cousin Sister, DA - Daughter, DL - Daughter-In-Law, FA - Father, FL -\
+          \ Father In Law, GD - Grand Daughter, GF - Grand Father, GM - Grand Mother,\
+          \ GS - Grand Son, HU - Husband, MO - Mother, ML - Mother In Law, NW - Nephew,\
+          \ NE - Niece, SI - Siblings, ST - Sister, SS - Sister In Law, SO - Son,\
+          \ SL - Son-in Law, SP - Spouse, WI - Wife"
+        enum:
+        - "BL"
+        - "BR"
+        - "CB"
+        - "CS"
+        - "DA"
+        - "DL"
+        - "FA"
+        - "FL"
+        - "GD"
+        - "GF"
+        - "GM"
+        - "GS"
+        - "HU"
+        - "MO"
+        - "ML"
+        - "NW"
+        - "NE"
+        - "SI"
+        - "ST"
+        - "SS"
+        - "SO"
+        - "SL"
+        - "SP"
+        - "WI"
+      salutation:
+        type: "string"
+        description: "Optional"
+        enum:
+        - "Mr."
+        - "Ms."
+        - "Mrs."
+        - "Dr."
+      nationalityDetails:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationNationalityDetails"
+      firstName:
+        type: "string"
+      middleName:
+        type: "string"
+      lastName:
+        type: "string"
+      gender:
+        type: "string"
+        enum:
+        - "M"
+        - "F"
+        - "O"
+      dob:
+        type: "string"
+        description: "date DD-MM-YYYY"
+        pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+      percentageShare:
+        type: "string"
+        description: "The percentage share of benefit to be allocated to nominee.\
+          \ The sum of this percentage Share for all nominees put together should\
+          \ be 100"
+    description: "Details of the appointee for the minor Nominee"
+  AddMemberAPIValidatorApplicationDetailsProposerInformationPartOfHeadcount:
+    type: "string"
+    description: "For backward compatibility with Max Life Insurance Systems."
+  AddMemberAPIValidatorApplicationDetailsProposerInformation:
+    type: "object"
+    required:
+    - "contactDetails"
+    - "dob"
+    - "firstName"
+    - "fullName"
+    - "gender"
+    - "lastName"
+    - "maritalStatus"
+    - "medicalInformation"
+    - "nationalityDetails"
+    properties:
+      title:
+        type: "string"
+        enum:
+        - "Mr."
+        - "Ms."
+        - "Mrs."
+        - "Dr."
+      fullName:
+        type: "string"
+      firstName:
+        type: "string"
+      middleName:
+        type: "string"
+      lastName:
+        type: "string"
+      gender:
+        type: "string"
+        enum:
+        - "M"
+        - "F"
+        - "O"
+      panCard:
+        type: "string"
+      dob:
+        type: "string"
+        description: "Date in (DD-MM-YYYY). example 1963-04-15"
+        pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+      annualIncome:
+        type: "integer"
+        minimum: 0.0
+        exclusiveMinimum: true
+      profession:
+        type: "string"
+      occupationClass:
+        type: "string"
+      occupation:
+        type: "string"
+      motherName:
+        type: "string"
+      fatherName:
+        type: "string"
+      maritalStatus:
+        type: "string"
+        enum:
+        - "S"
+        - "M"
+        - "Single"
+        - "Married"
+        - "Widowed"
+        - "Widower"
+        - "Divorced"
+        - "Separated"
+      partOfHeadcount:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationPartOfHeadcount"
+      nationalityDetails:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationNationalityDetails"
+      contactDetails:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetails"
+      medicalInformation:
+        type: "object"
+        description: "Medical Information of Individual"
+        properties:
+          height:
+            type: "integer"
+            description: "Height in centimeters. Enter '170' for 170 centimeters."
+            minimum: 0.0
+            maximum: 999.0
+          weight:
+            type: "integer"
+            description: "Weight in Kilograms. Enter '65' for 65 kilgrams"
+            minimum: 0.0
+            maximum: 999.0
+          healthDeclaration:
+            type: "boolean"
+            description: "'true' when declaration of good health applicable"
+    description: "This object contains the details of an individual associated with\
+      \ the policy."
+  AddMemberAPIValidatorAttachedDocumentsItem:
+    type: "object"
+    required:
+    - "documentName"
+    - "value"
+    properties:
+      documentName:
+        type: "string"
+        enum:
+        - "Health Declaration Form"
+      value:
+        type: "string"
+        description: "Base64 encoded PDF or JPEG file for additional/descriptive documents."
+    description: "A document container for required files."
+  AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsAddressDetailsCommunicationAddress:
+    type: "object"
+    required:
+    - "addressLine1"
+    - "city"
+    - "pincode"
+    - "streetName"
+    properties:
+      streetName:
+        type: "string"
+      addressLine1:
+        type: "string"
+      addressLine2:
+        type: "string"
+      addressLine3:
+        type: "string"
+      city:
+        type: "string"
+      pincode:
+        type: "integer"
+        description: "6-digit PIN code"
+        minimum: 100000.0
+        maximum: 999999.0
+    description: "Address details related to Individual"
+  AddMemberAPIValidatorApplicationDetailsProposerInformationContactDetailsResidentialPhoneNumber:
+    type: "object"
+    properties:
+      countryCode:
+        type: "string"
+        description: "Country Code preceded by +"
+      areaCode:
+        type: "string"
+        description: "Area code"
+      number:
+        type: "integer"
+        description: "landline number without any Country code or '0'-prefix or area\
+          \ code"
+  AddMemberAPIValidatorApplicationDetailsPolicyDetailsUnderwritingPreAssessmentForBasePolicy:
+    type: "object"
+    required:
+    - "isFinancialUnderWritingRequired"
+    - "isMedicalUnderWritingRequired"
+    properties:
+      isMedicalUnderWritingRequired:
+        type: "boolean"
+        description: "This indicates whether the component requires medical underwriting\
+          \ or not. This input is provided by the premium calculator."
+      isFinancialUnderWritingRequired:
+        type: "boolean"
+        description: "This indicates whether the component requires financial underwriting\
+          \ or not. This input is provided by the premium calculator."
+  AddMemberAPIValidatorApplicationDetailsPolicyDetailsNomineeDetailsItem:
+    type: "object"
+    required:
+    - "dob"
+    - "firstName"
+    - "gender"
+    - "lastName"
+    - "nationalityDetails"
+    - "percentageShare"
+    - "relationshipWithInsured"
+    properties:
+      relationshipWithInsured:
+        type: "string"
+        description: "BL - Brother In Law, BR - BROTHER, CB - Cousin Brother, CS -\
+          \ Cousin Sister, DA - Daughter, DL - Daughter-In-Law, FA - Father, FL -\
+          \ Father In Law, GD - Grand Daughter, GF - Grand Father, GM - Grand Mother,\
+          \ GS - Grand Son, HU - Husband, MO - Mother, ML - Mother In Law, NW - Nephew,\
+          \ NE - Niece, SI - Siblings, ST - Sister, SS - Sister In Law, SO - Son,\
+          \ SL - Son-in Law, SP - Spouse, WI - Wife"
+        enum:
+        - "BL"
+        - "BR"
+        - "CB"
+        - "CS"
+        - "DA"
+        - "DL"
+        - "FA"
+        - "FL"
+        - "GD"
+        - "GF"
+        - "GM"
+        - "GS"
+        - "HU"
+        - "MO"
+        - "ML"
+        - "NW"
+        - "NE"
+        - "SI"
+        - "ST"
+        - "SS"
+        - "SO"
+        - "SL"
+        - "SP"
+        - "WI"
+      salutation:
+        type: "string"
+        description: "Optional"
+        enum:
+        - "Mr."
+        - "Ms."
+        - "Mrs."
+        - "Dr."
+      nationalityDetails:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformationNationalityDetails"
+      firstName:
+        type: "string"
+      middleName:
+        type: "string"
+      lastName:
+        type: "string"
+      fatherName:
+        type: "string"
+      husbandName:
+        type: "string"
+      gender:
+        type: "string"
+        enum:
+        - "M"
+        - "F"
+        - "O"
+      dob:
+        type: "string"
+        description: "date DD-MM-YYYY"
+        pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+      reasonForNomination:
+        type: "string"
+        description: "Reason For Nomination"
+      percentageShare:
+        type: "string"
+        description: "The percentage share of benefit to be allocated to nominee.\
+          \ The sum of this percentage Share for all nominees put together should\
+          \ be 100"
+      isNomineeMinor:
+        type: "boolean"
+        description: "If Nominee is minor, then an appointee for the minor Nominee\
+          \ is mandatory"
+      appointee:
+        $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsPolicyDetailsNomineeDetailsItemAppointee"
+    description: "Details of the nominee for the policy."
+  AddMemberAPIValidator:
+    type: "object"
+    required:
+    - "applicationDetails"
+    properties:
+      applicationDetails:
+        type: "object"
+        description: "Application Form Details"
+        properties:
+          isInsuredSameAsProposer:
+            type: "boolean"
+            description: "Flag that indicates whether the proposer is the same as\
+              \ insured/borrower. 'true' is proposer and insured party are same and\
+              \ 'false' if proposer and insured are different."
+          proposerInformation:
+            description: "This object contains the details of the Proposer of the\
+              \ policy. This party purchases the policy and pays the premium. Not\
+              \ required if insured is same as proposer."
+            $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformation"
+          proposerRelationshipWithInsured:
+            type: "string"
+            description: "Relationship of Proposer with Insured. This is a mandatory\
+              \ field in case 'isProposerSameAsInsured' flag is 'true'. If Proposer\
+              \ is Mother and Insured is Son, then the correct value for this field\
+              \ would be 'Mother'. BL - Brother In Law, BR - BROTHER, CB - Cousin\
+              \ Brother, CS - Cousin Sister, DA - Daughter, DL - Daughter-In-Law,\
+              \ FA - Father, FL - Father In Law, GD - Grand Daughter, GF - Grand Father,\
+              \ GM - Grand Mother, GS - Grand Son, HU - Husband, MO - Mother, ML -\
+              \ Mother In Law, NW - Nephew, NE - Niece, SI - Siblings, ST - Sister,\
+              \ SS - Sister In Law, SO - Son, SL - Son-in Law, SP - Spouse, WI - Wife"
+            enum:
+            - "BL"
+            - "BR"
+            - "CB"
+            - "CS"
+            - "DA"
+            - "DL"
+            - "FA"
+            - "FL"
+            - "GD"
+            - "GF"
+            - "GM"
+            - "GS"
+            - "HU"
+            - "MO"
+            - "ML"
+            - "NW"
+            - "NE"
+            - "SI"
+            - "ST"
+            - "SS"
+            - "SO"
+            - "SL"
+            - "SP"
+            - "WI"
+          typeOfData:
+            type: "string"
+            description: "Member data Type Member (M) or Group/Company  (G)"
+          channelDetails:
+            type: "object"
+            description: "This object contains the details of the partner, their personnel\
+              \ and MLI personnel associated with sales and service of the policy."
+            properties:
+              masterPolicyId:
+                type: "integer"
+                description: "This is the eight digit master policy under which the\
+                  \ member is to be enrolled. 10000000-99999999"
+                minimum: 1.0E7
+                maximum: 9.9999999E7
+                exclusiveMinimum: false
+                exclusiveMaximum: false
+              planNo:
+                type: "string"
+                description: "This is the plan number, like 001, 002"
+              subsidiaryID:
+                type: "integer"
+                description: "This is the eight digit code for the subsidiary entity\
+                  \ under which the member is to be enrolled."
+                minimum: 1.0E7
+                maximum: 9.9999999E7
+                exclusiveMinimum: false
+                exclusiveMaximum: false
+              branchInformation:
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsChannelDetailsBranchInformation"
+              salesRM:
+                description: "Corresponsing Partner Personnel"
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsChannelDetailsSalesRM"
+              serviceRM:
+                description: "Corresponding MLI Personnel"
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsChannelDetailsSalesRM"
+              assetRM:
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsChannelDetailsSalesRM"
+              salesLeadNumber:
+                type: "string"
+                description: "used for CRM intergration"
+            required:
+            - "branchInformation"
+            - "masterPolicyId"
+            - "planNo"
+            - "salesRM"
+          loanDetails:
+            type: "object"
+            description: "Loan details of the borrower. Some of these details are\
+              \ used to verify the Premium Amount."
+            properties:
+              loanApplicationNumber:
+                type: "string"
+                description: "The application number of the sanctioned loan."
+              loanAccountNumber:
+                type: "string"
+                description: "The account number through which the loan will be serviced."
+              loanAmount:
+                type: "integer"
+                description: "The total loan amount Sanctioned."
+                minimum: 0.0
+                exclusiveMinimum: true
+              loanTenureInYears:
+                type: "integer"
+                description: "Loan tenure in years"
+                minimum: 0.0
+                maximum: 999.0
+                exclusiveMaximum: false
+              loanTenureInMonths:
+                type: "integer"
+                description: "Loan tenure in months"
+                minimum: 0.0
+                maximum: 999.0
+                exclusiveMaximum: false
+              interestRate:
+                type: "number"
+                description: "Percent interest rate on the total loan amount sanctioned.\
+                  \ Example: 7.75 represents 7.75 percent."
+                minimum: 0.0
+                maximum: 100.0
+                exclusiveMinimum: false
+                exclusiveMaximum: false
+              holdsPreviousLoans:
+                type: "string"
+                description: "True when the member holds any other loans with financer."
+              loanNature:
+                type: "string"
+                description: "Auto Populate based on the scheme opted by the member:\
+                  \ a. No Moratorium:04, b. Moratorium Period: 03"
+                enum:
+                - "04"
+                - "03"
+              topUpLoan:
+                type: "string"
+                description: "Any top up loan applicable by borrower which will depend\
+                  \ upon the scheme"
+                enum:
+                - "Y"
+                - "N"
+              tentativeLoanEMIAmount:
+                type: "number"
+                description: "Tentative EMI of Loan. This is adjusted later to account\
+                  \ for the added EMI of the Insurance Premium in case the flag 'isPremiumFinancedByLender'\
+                  \ is 'true'. This is a non-mandatory field."
+                minimum: 0.0
+                maximum: 9.999999999E9
+              insuredInformation:
+                description: "This object contains the details of the Insured/borrowing\
+                  \ party. This is a mandatory object."
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsProposerInformation"
+            required:
+            - "insuredInformation"
+            - "interestRate"
+            - "loanAccountNumber"
+            - "loanAmount"
+            - "loanApplicationNumber"
+            - "loanNature"
+          policyDetails:
+            type: "object"
+            description: "Details of the Policy and Insurance cover opted for."
+            properties:
+              ageOnEffectiveDateOfCoverage:
+                type: "integer"
+                description: "Age of Insured as on effective date of coverage."
+                minimum: 0.0
+                maximum: 100.0
+              sumAssured:
+                type: "number"
+                description: "Sum Assured taken for Insurance"
+                minimum: 0.0
+                maximum: 1.0E9
+              effectiveFromDate:
+                type: "string"
+                description: "IST date from which the policy will be effective. Format:\
+                  \ DD/MM/YYYY"
+                pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+              proposalDate:
+                type: "string"
+                description: "IST date from which the policy will be effective. Format:\
+                  \ DD/MM/YYYY"
+                pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+              riskStartDate:
+                type: "string"
+                description: "Start date from which risk is to be assumed."
+                pattern: "^([0-2][0-9]|(3)[0-1])(/)(((0)[0-9])|((1)[0-2]))(/)\\d{4}$"
+              coverOptionType:
+                type: "string"
+                description: "Level/Reducing"
+                enum:
+                - "Level"
+                - "Reducing"
+              productCode:
+                type: "string"
+                description: "Product Code under which to enrol. This is linked to\
+                  \ the Master Policy Number."
+                enum:
+                - "GCL2"
+                - "GCR2"
+                - "CCL2"
+                - "CCR2"
+                - "CCL3"
+                - "CCR3"
+              basePremiumAmountExcludingTax:
+                type: "number"
+                minimum: 0.0
+                exclusiveMinimum: true
+              taxAmountOnBasePremium:
+                type: "number"
+                minimum: 0.0
+                exclusiveMinimum: true
+              totalPremiumAmountIncludingTax:
+                type: "number"
+                minimum: 0.0
+                exclusiveMinimum: true
+              isPremiumFinancedByLender:
+                type: "boolean"
+                description: "'true' if the Premium amount is included in sanctioned\
+                  \ loan amount."
+              paymentInformation:
+                $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsPolicyDetailsPaymentInformation"
+              nomineeDetails:
+                type: "array"
+                description: "The percentage share for all nominees put together should\
+                  \ add up to 100"
+                items:
+                  $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsPolicyDetailsNomineeDetailsItem"
+              underwritingPreAssessment:
+                type: "object"
+                properties:
+                  forBasePolicy:
+                    $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsPolicyDetailsUnderwritingPreAssessmentForBasePolicy"
+                  forOverallPolicy:
+                    $ref: "#/definitions/AddMemberAPIValidatorApplicationDetailsPolicyDetailsUnderwritingPreAssessmentForBasePolicy"
+                required:
+                - "forBasePolicy"
+                - "forOverallPolicy"
+            required:
+            - "basePremiumAmountExcludingTax"
+            - "coverOptionType"
+            - "effectiveFromDate"
+            - "isPremiumFinancedByLender"
+            - "nomineeDetails"
+            - "productCode"
+            - "riskStartDate"
+            - "sumAssured"
+            - "taxAmountOnBasePremium"
+            - "totalPremiumAmountIncludingTax"
+            - "underwritingPreAssessment"
+        required:
+        - "channelDetails"
+        - "loanDetails"
+        - "policyDetails"
+      attachedDocuments:
+        type: "array"
+        description: "Any attachments that are needed to process the member addition"
+        items:
+          $ref: "#/definitions/AddMemberAPIValidatorAttachedDocumentsItem"
+    title: "Max Life Insurance Add Member API - Request Schema Document v1.0"
+x-amazon-apigateway-documentation:
+  version: "v1"
+  createdDate: "2019-09-25T07:09:30Z"
+  documentationParts:
+  - location:
+      type: "API"
+    properties:
+      description: "First Document API"
+x-amazon-apigateway-gateway-responses:
+  BAD_REQUEST_BODY:
+    statusCode: 400
+    responseTemplates:
+      application/json: "{ \"msg\":$context.error.messageString,\n\"msgCode\":400,\
+        \ \"msgDescriptions\":\"$context.error.validationErrorString\" }"
+  BAD_REQUEST_PARAMETERS:
+    statusCode: 400
+    responseTemplates:
+      application/json: "{ \"msg\":$context.error.messageString, \"msgCode\":400,\
+        \ \"msgDescriptions\":\"$context.error.validationErrorString\" }"
+  UNSUPPORTED_MEDIA_TYPE:
+    statusCode: 415
+    responseTemplates:
+      application/json: "{ \"msg\":\"$context.error.responseType\", \"msgCode\":415,\
+        \ \"msgDescriptions\":$context.error.messageString }"
+  UNAUTHORIZED:
+    statusCode: 401
+    responseTemplates:
+      application/json: "{ \"msg\":\"$context.error.responseType\", \"msgCode\":401,\
+        \ \"msgDescriptions\":$context.error.messageString,$context.error.validationErrorString\
+        \ }"
+x-amazon-apigateway-request-validators:
+  Validate body, query string parameters, and headers:
+    validateRequestParameters: true
+    validateRequestBody: true
