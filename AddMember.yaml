@@ -60,34 +60,6 @@ paths:
       security:
       - Pirmal-UAT:
         - "GroupAPI/ADD_MEMBER"
-      x-amazon-apigateway-request-validator: "Validate body, query string parameters,\
-        \ and headers"
-      x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:ap-south-1:lambda:path/2015-03-31/functions/arn:aws:lambda:ap-south-1:777706696655:function:AffinityPartnerAddMemberLambda-uat/invocations"
-        responses:
-          .*400,.*:
-            statusCode: "400"
-            responseTemplates:
-              application/json: "$util.parseJson($input.json('$.errorMessage'))"
-          default:
-            statusCode: "200"
-          .*500,.*:
-            statusCode: "500"
-            responseTemplates:
-              application/json: "$util.parseJson($input.json('$.errorMessage'))"
-          .*422,.*:
-            statusCode: "422"
-            responseTemplates:
-              application/json: "$util.parseJson($input.json('$.errorMessage'))"
-        passthroughBehavior: "never"
-        httpMethod: "POST"
-        requestTemplates:
-          application/json: "{\r\n    \"method\": \"$context.httpMethod\",\r\n   \
-            \ \"body\" : $input.json('$'),\r\n    \"headers\": {\r\n        #foreach($param\
-            \ in $input.params().header.keySet())\r\n        \"$param\": \"$util.escapeJavaScript($input.params().header.get($param))\"\
-            \r\n        #if($foreach.hasNext),#end\r\n        #end\r\n    }\r\n}"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws"
 components:
   schemas:
     AddMemberAPIValidatorApplicationDetailsPolicyDetailsPaymentInformation:
@@ -1209,41 +1181,3 @@ components:
       name: "Authorization"
       in: "header"
       x-amazon-apigateway-authtype: "cognito_user_pools"
-      x-amazon-apigateway-authorizer:
-        providerARNs:
-        - "arn:aws:cognito-idp:ap-south-1:777706696655:userpool/ap-south-1_0soGQEbBJ"
-        type: "cognito_user_pools"
-x-amazon-apigateway-documentation:
-  version: "v1"
-  createdDate: "2019-09-25T07:09:30Z"
-  documentationParts:
-  - location:
-      type: "API"
-    properties:
-      description: "First Document API"
-x-amazon-apigateway-gateway-responses:
-  BAD_REQUEST_BODY:
-    statusCode: 400
-    responseTemplates:
-      application/json: "{ \"msg\":$context.error.messageString,\n\"msgCode\":400,\
-        \ \"msgDescriptions\":\"$context.error.validationErrorString\" }"
-  UNSUPPORTED_MEDIA_TYPE:
-    statusCode: 415
-    responseTemplates:
-      application/json: "{ \"msg\":\"$context.error.responseType\", \"msgCode\":415,\
-        \ \"msgDescriptions\":$context.error.messageString }"
-  UNAUTHORIZED:
-    statusCode: 401
-    responseTemplates:
-      application/json: "{ \"msg\":\"$context.error.responseType\", \"msgCode\":401,\
-        \ \"msgDescriptions\":$context.error.messageString,$context.error.validationErrorString\
-        \ }"
-  BAD_REQUEST_PARAMETERS:
-    statusCode: 400
-    responseTemplates:
-      application/json: "{ \"msg\":$context.error.messageString, \"msgCode\":400,\
-        \ \"msgDescriptions\":\"$context.error.validationErrorString\" }"
-x-amazon-apigateway-request-validators:
-  Validate body, query string parameters, and headers:
-    validateRequestParameters: true
-    validateRequestBody: true
