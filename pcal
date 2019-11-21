@@ -1,0 +1,34 @@
+{
+  "request": {
+    "header": {
+      "soaCorrelationId": "12345",
+      "soaAppId": "AXIS"
+    },
+    "payload": {
+      "loanDetails": {
+        "schemeType": "HL",
+        "sumAssured": "19000000",
+        "interestRate": "10",
+        "tenure": "5",
+        "coverOption": "Reducing",
+        "hasFinancePremium": "Yes",
+        "edc": "2019-07-18",	
+        "MPH": "Axis Bank",
+        "maxLifeRegisteredState": "TN"
+      },
+      "borrowerDetails": {
+        "name": "ABC",
+        "DOB": "1999-01-01",
+        "gender": "M",
+        "state": "HR"
+      },
+      "acceleratedCriticalIllness": {
+        "isRequired": "Yes",
+        "code": "ACI",
+        "tenure": "5",
+        "SAPercentage": "50",
+        "benefitType": "CI_Gold"
+      }
+    }
+  }
+}
